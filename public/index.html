@@ -144,12 +144,13 @@
           }
           if (msg.type === "chat") {
             const { id, text } = msg;
+            const time = new Date().toLocaleTimeString();
             const messageList = document.querySelector(".messages");
             const li = document.createElement("li");
             if (id === myId) {
-              li.textContent = `(${id})自分:` + text;
+              li.textContent = `(${id})自分 [${time}]: ` + text;
             } else {
-              li.textContent = id + ": " + text;
+              li.textContent = `${id} [${time}]: ` + text;
             }
             messageList.appendChild(li);
           }
