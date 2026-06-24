@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
@@ -41,117 +41,129 @@
         <button class="submit">Send</button>
       </form>
     </div>
-    <canvas
-      id="canvas"
-      width="600"
-      height="600"
-      style="border: solid 1px black"
-    ></canvas>
+    <div>
+      <canvas
+        id="canvas"
+        width="600"
+        height="600"
+        style="border: solid 1px black"
+      ></canvas>
+      <button id="clear-btn" class="clear">Clear</button>
+    </div>
 
     <script>
       function main() {
-        const host = location.origin.replace(/^http/, 'ws')
-        const ws = new WebSocket(host + '/ws')
-        const myId = self.crypto.randomUUID().substr(0, 8)
+        const host = location.origin.replace(/^http/, "ws");
+        const ws = new WebSocket(host + "/ws");
+        const myId = self.crypto.randomUUID().substr(0, 8);
 
-        const canvas = document.getElementById('canvas')
-        const ctx = canvas.getContext('2d')
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
 
-        let drawing = false
+        let drawing = false;
 
-        canvas.addEventListener('mousedown', (e) => {
-          sendDrawingEvent(e.offsetX, e.offsetY, 'mousedown')
-        })
+        canvas.addEventListener("mousedown", (e) => {
+          sendDrawingEvent(e.offsetX, e.offsetY, "mousedown");
+        });
         function mousedown() {
-          drawing = true
-          ctx.beginPath()
+          drawing = true;
+          ctx.beginPath();
         }
 
-        canvas.addEventListener('mousemove', (e) => {
+        canvas.addEventListener("mousemove", (e) => {
           if (drawing) {
-            sendDrawingEvent(e.offsetX, e.offsetY, 'mousemove')
+            sendDrawingEvent(e.offsetX, e.offsetY, "mousemove");
           }
-        })
+        });
         function mousemove(x, y) {
           if (drawing) {
-            draw(x, y, true)
+            draw(x, y, true);
           }
         }
 
-        canvas.addEventListener('mouseup', (e) => {
-          sendDrawingEvent(e.offsetX, e.offsetY, 'mouseup')
-        })
+        canvas.addEventListener("mouseup", (e) => {
+          sendDrawingEvent(e.offsetX, e.offsetY, "mouseup");
+        });
         function mouseup() {
-          drawing = false
-          ctx.beginPath()
+          drawing = false;
+          ctx.beginPath();
         }
 
-        canvas.addEventListener('mouseout', (e) => {
-          sendDrawingEvent(e.offsetX, e.offsetY, 'mouseout')
-        })
+        canvas.addEventListener("mouseout", (e) => {
+          sendDrawingEvent(e.offsetX, e.offsetY, "mouseout");
+        });
         function mouseout() {
-          drawing = false
+          drawing = false;
         }
 
         function draw(x, y, dragging) {
           if (dragging) {
-            ctx.lineTo(x, y)
-            ctx.stroke()
+            ctx.lineTo(x, y);
+            ctx.stroke();
           } else {
-            ctx.moveTo(x, y)
+            ctx.moveTo(x, y);
           }
         }
 
         function sendDrawingEvent(x, y, control) {
-          const message = JSON.stringify({ x, y, control, type: 'paint' })
-          ws.send(message)
+          const message = JSON.stringify({ x, y, control, type: "paint" });
+          ws.send(message);
         }
+
+        document.getElementById("clear-btn").addEventListener("click", () => {
+          ws.send(JSON.stringify({ type: "clear" }));
+        });
 
         ws.onmessage = (event) => {
-          const msg = JSON.parse(event.data)
-          if (msg.type === 'paint') {
-            const { x, y, control } = msg
-            console.log({ control })
-            if (control === 'mousedown') {
-              mousedown()
-            } else if (control === 'mouseup') {
-              mouseup()
-            } else if (control === 'mousemove') {
-              mousemove(x, y)
-            } else if (control === 'mouseout') {
-              mouseout()
+          const msg = JSON.parse(event.data);
+          if (msg.type === "paint") {
+            const { x, y, control } = msg;
+            console.log({ control });
+            if (control === "mousedown") {
+              mousedown();
+            } else if (control === "mouseup") {
+              mouseup();
+            } else if (control === "mousemove") {
+              mousemove(x, y);
+            } else if (control === "mouseout") {
+              mouseout();
             }
           }
-          if (msg.type === 'chat') {
-            const { id, text } = msg
-            const messageList = document.querySelector('.messages')
-            const li = document.createElement('li')
+          if (msg.type === "chat") {
+            const { id, text } = msg;
+            const messageList = document.querySelector(".messages");
+            const li = document.createElement("li");
             if (id === myId) {
-              li.textContent = `(${id})自分:` + text
+              li.textContent = `(${id})自分:` + text;
             } else {
-              li.textContent = id + ': ' + text
+              li.textContent = id + ": " + text;
             }
-            messageList.appendChild(li)
+            messageList.appendChild(li);
           }
-        }
 
-        const form = document.querySelector('.form')
+          if (msg.type === "clear") {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+          }
+        };
+
+        const form = document.querySelector(".form");
 
         form.onsubmit = function (e) {
-          e.preventDefault()
-          const input = document.querySelector('.input')
-          const text = input.value
-          ws.send(JSON.stringify({ id: myId, text, type: 'chat' }))
-          input.value = ''
-          input.focus()
-        }
+          e.preventDefault();
+          const input = document.querySelector(".input");
+          const text = input.value;
+          ws.send(JSON.stringify({ id: myId, text, type: "chat" }));
+          input.value = "";
+          input.focus();
+        };
 
         ws.onerror = function (error) {
-          console.error('WebSocket Error: ', error)
-        }
+          console.error("WebSocket Error: ", error);
+        };
       }
 
-      main()
+      main();
     </script>
   </body>
 </html>
