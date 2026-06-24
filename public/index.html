@@ -42,6 +42,12 @@
       </form>
     </div>
     <div>
+      <input
+        type="color"
+        id="color-picker"
+        value="#000000"
+        style="margin-bottom: 10px"
+      />
       <canvas
         id="canvas"
         width="600"
@@ -106,7 +112,14 @@
         }
 
         function sendDrawingEvent(x, y, control) {
-          const message = JSON.stringify({ x, y, control, type: "paint" });
+          const color = document.getElementById("color-picker").value;
+          const message = JSON.stringify({
+            x,
+            y,
+            control,
+            color,
+            type: "paint",
+          });
           ws.send(message);
         }
 
@@ -117,8 +130,8 @@
         ws.onmessage = (event) => {
           const msg = JSON.parse(event.data);
           if (msg.type === "paint") {
-            const { x, y, control } = msg;
-            console.log({ control });
+            const { x, y, control, color } = msg;
+            ctx.strokeStyle = color;
             if (control === "mousedown") {
               mousedown();
             } else if (control === "mouseup") {
